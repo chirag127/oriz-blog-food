@@ -3,112 +3,233 @@ import HeaderControls from '~/components/HeaderControls.tsx'
 import MultiSearch from '~/components/MultiSearch.tsx'
 import StatusBanner from '~/components/StatusBanner.astro'
 /*
- * Header — editorial masthead bar ("Signal Press").
+ * Header — MENU-BOARD masthead (recipe-card-grid archetype).
  *
- *   ┌─────────────────────────────────────────────────────────────────┐
- *   │  oriz/blog        LATEST · SERIES · TAGS · ABOUT    ⌘K rss ··· │
- *   └─────────────────────────────────────────────────────────────────┘
+ * NOT a top-nav bar. A restaurant "specials board" pinned to the top of the
+ * canvas: the z-strike wordmark as the board brand, a mono service line, and a
+ * horizontal CATEGORY CHIP RAIL that is the primary navigation. Utility
+ * (search + theme) sits in a tight corner, never a centered nav row.
  *
- * Left: serif wordmark. Center: mono uppercase nav with orange underline.
- * Right: search (⌘K), rss, ··· overflow. 64px, sticky, paper blur.
+ *   ┌───────────────────────────────────────────────────────────┐
+ *   │  THE PASS · <weekday>                     [⌘K]  [theme]     │
+ *   │  oriz / kitchen                                             │
+ *   │  Cook the things you actually eat.                         │
+ *   │  ⟨ All ⟩ ⟨ Mains ⟩ ⟨ Baking ⟩ ⟨ Prep ⟩ ⟨ Pantry ⟩ →       │  (chip rail)
+ *   └───────────────────────────────────────────────────────────┘
+ *
+ * The chip rail is horizontally scrollable on mobile (overflow-x auto), so the
+ * board never collapses into a hamburger — categories stay in view.
  */
-import Wordmark from '~/components/Wordmark.astro'
+import { getCategoriesWithCounts, slugifyTag, verticalFor } from '~/lib/blog'
+
+const cats = (await getCategoriesWithCounts()).slice(0, 8)
+const pathname = Astro.url.pathname
+const now = new Date()
+const service = now.toLocaleDateString('en-GB', { weekday: 'long' })
+
+const chips = [
+  { label: 'All', href: '/blog/', vertical: 'personal', active: pathname === '/' || pathname === '/blog/' },
+  ...cats.map((c) => ({
+    label: c.category,
+    href: `/categories/${slugifyTag(c.category)}/`,
+    vertical: verticalFor(c.category),
+    active: pathname.startsWith(`/categories/${slugifyTag(c.category)}`),
+  })),
+]
 ---
 
 <StatusBanner />
-<header class="site-header" transition:persist="site-header">
-  <div class="container-page header-inner">
-    <div class="brand">
-      <Wordmark subtitle="kitchen" size={21} href="/" />
+<header class="board" transition:persist="site-header">
+  <div class="container-page board-inner">
+    <div class="board-top">
+      <p class="service mono">
+        <span class="service-tick" aria-hidden="true"></span>
+        On the pass
+        <span class="service-sep" aria-hidden="true">·</span>
+        <span class="service-day">{service}</span>
+      </p>
+      <div class="board-util">
+        <div class="board-search"><MultiSearch client:idle /></div>
+        <div class="board-controls"><HeaderControls client:idle /></div>
+      </div>
     </div>
-    <nav class="header-nav" aria-label="Primary">
-      <a href="/" aria-current={Astro.url.pathname === '/' ? 'page' : undefined}>Fresh</a>
-      <a href="/series/" aria-current={Astro.url.pathname.startsWith('/series') ? 'page' : undefined}>Series</a>
-      <a href="/tags/" aria-current={Astro.url.pathname.startsWith('/tags') ? 'page' : undefined}>Tags</a>
-      <a href="/about/" aria-current={Astro.url.pathname.startsWith('/about') ? 'page' : undefined}>About</a>
+
+    <a class="board-brand" href="/" aria-label="oriz / kitchen — home">
+      <span class="brand-mark">
+        <span class="brand-letter">o</span>
+        <span class="brand-letter">r</span>
+        <span class="brand-letter">i</span>
+        <span class="brand-letter brand-z">z<svg class="brand-strike" viewBox="0 0 100 40" aria-hidden="true" preserveAspectRatio="none" focusable="false"><path d="M4 30 L96 12 L84 4" /></svg></span>
+      </span>
+      <span class="brand-sep" aria-hidden="true">/</span>
+      <span class="brand-sub">kitchen</span>
+    </a>
+    <p class="board-thesis">Cook the things you actually eat.</p>
+
+    <nav class="chiprail" aria-label="Recipe categories">
+      <ul>
+        {chips.map((chip) => (
+          <li>
+            <a
+              class="chip"
+              data-vertical={chip.vertical}
+              href={chip.href}
+              aria-current={chip.active ? 'page' : undefined}
+            >{chip.label}</a>
+          </li>
+        ))}
+        <li><a class="chip chip-more" href="/categories/">All desks →</a></li>
+      </ul>
     </nav>
-    <div class="header-multisearch">
-      <MultiSearch client:idle />
-    </div>
-    <div class="header-controls-mount">
-      <HeaderControls client:idle />
-    </div>
   </div>
 </header>
 
 <style>
-  .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: color-mix(in oklab, var(--paper) 90%, transparent);
-    backdrop-filter: saturate(180%) blur(10px);
-    -webkit-backdrop-filter: saturate(180%) blur(10px);
-    border-bottom: 1px solid var(--rule);
+  /* Non-sticky menu board — it belongs to the page, not a floating chrome bar. */
+  .board {
+    background: var(--paper);
+    border-bottom: 2px solid var(--ink);
   }
-  .header-inner {
-    height: 64px;
+  .board-inner {
+    padding-block: clamp(1rem, 3vw, 1.75rem) 0;
+  }
+  .board-top {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    justify-content: space-between;
+    gap: 1rem;
   }
-  .brand {
-    flex: 0 0 auto;
+  .service {
     display: inline-flex;
     align-items: center;
-  }
-  .header-nav {
-    display: none;
-    gap: 1.5rem;
-    font-family: var(--font-utility, var(--font-mono));
-    font-size: 12px;
-    letter-spacing: 0.1em;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--ink-mute);
   }
-  .header-nav a {
-    position: relative;
-    padding-block: 0.375rem;
-    color: var(--color-muted);
+  .service-tick {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%);
+  }
+  .service-sep { color: var(--rule-strong, var(--rule)); }
+  .service-day { color: var(--ink); }
+
+  .board-util {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Brand — z-strike wordmark scaled up as the board headline. */
+  .board-brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.16em;
+    margin-top: clamp(0.75rem, 2vw, 1.25rem);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3.25rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
     text-decoration: none;
-    transition: color var(--dur-fast, 120ms) ease;
   }
-  .header-nav a:hover {
-    color: var(--color-accent);
-  }
-  .header-nav a::after {
-    content: '';
+  .brand-mark { display: inline-flex; align-items: baseline; }
+  .brand-letter { position: relative; display: inline-block; }
+  .brand-z { padding-inline: 0.12em; }
+  .brand-strike {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    background: var(--color-accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--dur-fast, 120ms) ease;
+    left: -0.06em;
+    right: -0.06em;
+    top: 42%;
+    width: calc(100% + 0.12em);
+    height: 0.42em;
+    overflow: visible;
+    pointer-events: none;
+    transform: rotate(-2deg);
   }
-  .header-nav a:hover::after,
-  .header-nav a[aria-current='page']::after {
-    transform: scaleX(1);
+  .brand-strike path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
-  .header-nav a[aria-current='page'] {
-    color: var(--color-accent);
+  .brand-sep { margin-inline: 0.2em; color: var(--ink-mute); font-weight: 400; }
+  .brand-sub { color: var(--accent); font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.02em; font-size: 0.42em; }
+
+  .board-thesis {
+    margin: 0.375rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 2vw, 1.125rem);
+    color: var(--ink-mute);
+    max-width: 40ch;
   }
-  @media (min-width: 768px) {
-    .header-nav { display: inline-flex; align-items: center; }
+
+  /* Chip rail — the primary nav. Horizontally scrollable, never a hamburger. */
+  .chiprail {
+    margin-top: clamp(1rem, 3vw, 1.5rem);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .header-controls-mount {
-    margin-left: auto;
+  .chiprail::-webkit-scrollbar { display: none; }
+  .chiprail ul {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0.875rem;
+    width: max-content;
+    min-width: 100%;
+  }
+  .chip {
+    --v: var(--v-personal);
     display: inline-flex;
     align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--paper-2) 55%, transparent);
+    transition: color var(--dur-fast, 120ms) ease, border-color var(--dur-fast, 120ms) ease;
   }
-  .header-multisearch {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
+  .chip[data-vertical='dev'] { --v: var(--v-dev); }
+  .chip[data-vertical='finance'] { --v: var(--v-finance); }
+  .chip[data-vertical='culture'] { --v: var(--v-culture); }
+  .chip[data-vertical='health'] { --v: var(--v-health); }
+  .chip::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--v);
+    flex: 0 0 auto;
   }
-  .header-multisearch + .header-controls-mount {
-    margin-left: 0.75rem;
+  .chip:hover { color: var(--ink); border-color: var(--v); }
+  .chip[aria-current='page'] {
+    color: var(--color-accent-fg, var(--paper));
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .chip[aria-current='page']::before { background: var(--color-accent-fg, var(--paper)); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip-more { color: var(--accent); }
+  .chip-more::before { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chip { transition: none; }
   }
 </style>

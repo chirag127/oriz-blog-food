@@ -179,3 +179,33 @@ form[data-oriz-contact] {
     animation: none;
   }
 }
+
+/* ── Recipe-card-grid masonry (archetype) ─────────────────────────────
+ * Every listing (blog index, pages, category, tag, author) wraps its
+ * PostCards in `ul.post-list` / `ul.post-grid`. PostCard is now a tall
+ * enamel dish card, so those lists become an asymmetric CSS-columns
+ * masonry: 1 col mobile → 2 → 3. No hairline rows, no fixed grid.
+ * Selectors are deliberately element+class so they win over the minimal
+ * per-page scoped `.post-list` resets (which only touch list-style). */
+ul.post-list,
+ul.post-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-gap: 1rem;
+  columns: 1;
+}
+ul.post-list > li,
+ul.post-grid > li {
+  break-inside: avoid;
+  margin: 0 0 1rem;
+  display: block;
+}
+@media (min-width: 600px) {
+  ul.post-list,
+  ul.post-grid { columns: 2; }
+}
+@media (min-width: 1000px) {
+  ul.post-list,
+  ul.post-grid { columns: 3; }
+}

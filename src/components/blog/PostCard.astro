@@ -1,151 +1,126 @@
 ---
 /**
- * PostCard — editorial listing entry ("Signal Press"). One hairline-ruled
- * row (no rounded card, no shadow, no radius): a vertical-coloured kicker
- * rule + desk label, a serif headline, a one-line dek, and a mono meta foot
- * (date · reading time). Used by every listing (index, tag, category,
- * related). The whole entry is one link; the desk kicker deep-links to the
- * category.
+ * PostCard — TALL RECIPE CARD (recipe-card-grid archetype).
+ *
+ * A menu-board dish card, not a hairline row: enamel panel with a rounded
+ * corner, a desk chip, a big Fraunces dish title, a two-line dek, and a mono
+ * SPEC FOOT (date · time) with the turmeric measure tick. Cards sit in an
+ * asymmetric CSS-columns masonry on the listings, so height varies naturally
+ * with dek length — no fixed rows, no photos.
  */
 import type { CollectionEntry } from 'astro:content'
 import { formatPostDate, postVertical, slugifyTag, verticalLabel } from '~/lib/blog'
 
 export interface Props {
   post: CollectionEntry<'blog'>
+  /** Feature the card (spans wider, larger title) — used for the lead dish. */
+  feature?: boolean
 }
 
-const { post } = Astro.props
+const { post, feature = false } = Astro.props
 const { title, description, pubDate, category, readingTime } = post.data
 const href = `/blog/${post.id}`
-const catHref = `/categories/${slugifyTag(category)}/`
 const vert = postVertical(post)
 ---
 
-<article class="post-card" data-vertical={vert}>
-  <a class="post-card-link" href={href}>
-    <span class="post-card-kicker">
-      <span class="post-card-tick" aria-hidden="true"></span>
-      <span class="post-card-desk">{verticalLabel(vert)}</span>
-      <span class="post-card-cat">{category}</span>
+<article class="dish" data-vertical={vert} class:list={[{ 'is-feature': feature }]}>
+  <a class="dish-link" href={href}>
+    <span class="dish-kicker mono">
+      <span class="dish-tick" aria-hidden="true"></span>
+      <span class="dish-desk">{verticalLabel(vert)}</span>
+      <span class="dish-cat">{category}</span>
     </span>
-    <h3 class="post-card-title">{title}</h3>
-    <p class="post-card-desc">{description}</p>
-    <span class="post-card-foot">
+    <h3 class="dish-title">{title}</h3>
+    <p class="dish-dek">{description}</p>
+    <span class="dish-foot mono">
       <time datetime={pubDate.toISOString()}>{formatPostDate(pubDate)}</time>
-      {readingTime && <span class="post-card-rt">{readingTime}</span>}
+      {readingTime && <span class="dish-rt">{readingTime}</span>}
     </span>
   </a>
-  <a class="post-card-cat-link" href={catHref} aria-label={`More in ${category}`}>{category}</a>
 </article>
 
 <style>
-  .post-card {
-    position: relative;
-    border-top: 1px solid var(--rule);
+  .dish {
     --v: var(--v-personal);
+    break-inside: avoid;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-card, 10px);
+    background: var(--paper-2);
+    overflow: hidden;
+    transition: border-color var(--dur-fast, 120ms) ease, transform var(--dur-fast, 120ms) ease;
   }
-  .post-card[data-vertical='dev'] { --v: var(--v-dev); }
-  .post-card[data-vertical='finance'] { --v: var(--v-finance); }
-  .post-card[data-vertical='culture'] { --v: var(--v-culture); }
-  .post-card[data-vertical='health'] { --v: var(--v-health); }
+  .dish[data-vertical='dev'] { --v: var(--v-dev); }
+  .dish[data-vertical='finance'] { --v: var(--v-finance); }
+  .dish[data-vertical='culture'] { --v: var(--v-culture); }
+  .dish[data-vertical='health'] { --v: var(--v-health); }
+  .dish:hover { border-color: var(--v); transform: translateY(-2px); }
 
-  .post-card-link {
+  .dish-link {
     display: grid;
-    gap: 0.5rem;
-    padding: 1.125rem 0 1.25rem 0.875rem;
+    gap: 0.625rem;
+    padding: 1.125rem 1.125rem 1rem;
     text-decoration: none;
     color: var(--ink);
-    border-left: 2px solid transparent;
-    margin-left: -0.875rem;
-    padding-left: 0.875rem;
-    transition: border-color var(--dur-fast, 120ms) ease;
+    /* the desk edge — a coloured spine down the card's left */
+    border-left: 3px solid var(--v);
   }
-  .post-card-link:hover { border-left-color: var(--v); }
 
-  .post-card-kicker {
+  .dish-kicker {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-mute);
   }
-  .post-card-tick {
-    width: 7px;
-    height: 7px;
-    background: var(--v);
-    flex: 0 0 auto;
-  }
-  .post-card-desk { color: var(--v); font-weight: 500; }
-  .post-card-cat {
-    color: var(--ink-mute);
-    border-left: 1px solid var(--rule);
-    padding-left: 0.5rem;
-    letter-spacing: 0.1em;
-  }
+  .dish-tick { width: 7px; height: 7px; background: var(--v); flex: 0 0 auto; clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%); }
+  .dish-desk { color: var(--v); font-weight: 500; }
+  .dish-cat { color: var(--ink-mute); border-left: 1px solid var(--rule); padding-left: 0.5rem; letter-spacing: 0.1em; }
 
-  .post-card-title {
+  .dish-title {
     font-family: var(--font-display);
     font-size: 1.375rem;
     font-weight: 600;
     letter-spacing: -0.015em;
-    line-height: 1.2;
+    line-height: 1.18;
     margin: 0;
     color: var(--ink);
   }
-  .post-card-link:hover .post-card-title { color: var(--accent); }
+  .dish-link:hover .dish-title { color: var(--accent); }
 
-  .post-card-desc {
+  .dish-dek {
     color: var(--ink-mute);
     font-family: var(--font-body);
     font-size: 0.9375rem;
-    line-height: 1.5;
+    line-height: 1.55;
     margin: 0;
-    max-width: 62ch;
-    overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
-    line-clamp: 2;
+    line-clamp: 4;
+    overflow: hidden;
   }
-  .post-card-foot {
+
+  .dish-foot {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    font-family: var(--font-mono);
+    gap: 0.625rem;
+    margin-top: 0.25rem;
     font-size: 11px;
     letter-spacing: 0.06em;
     color: var(--ink-mute);
   }
-  .post-card-rt::before {
-    content: '·';
-    margin-right: 0.75rem;
-    color: var(--rule-strong, var(--rule));
-  }
-  /* Sibling deep-link to category — visually hidden, keyboard reachable. */
-  .post-card-cat-link {
-    position: absolute;
-    inset: 0 0 auto auto;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-  .post-card-cat-link:focus-visible {
-    width: auto;
-    height: auto;
-    clip: auto;
-    top: 1.125rem;
-    right: 0;
-    padding: 0.125rem 0.5rem;
-    background: var(--paper);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
+  .dish-rt::before { content: '·'; margin-right: 0.625rem; color: var(--rule-strong, var(--rule)); }
+
+  /* Feature dish — the lead plate: bigger title, spans both columns. */
+  .dish.is-feature { grid-column: 1 / -1; }
+  .dish.is-feature .dish-title { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.08; }
+  .dish.is-feature .dish-dek { -webkit-line-clamp: 3; max-width: 60ch; font-size: 1.0625rem; }
+  .dish.is-feature .dish-link { padding: 1.5rem 1.5rem 1.375rem; gap: 0.875rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dish { transition: border-color var(--dur-fast, 120ms) ease; }
+    .dish:hover { transform: none; }
   }
 </style>

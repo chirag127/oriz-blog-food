@@ -11,11 +11,9 @@ import '~/styles/oriz-ui-overrides.css'
 import 'katex/dist/katex.min.css'
 import '~/styles/tokens.css'
 import { ClientRouter } from 'astro:transitions'
-import AppSidebarContent from '~/components/AppSidebarContent.astro'
 import BottomBar from '~/components/chrome/BottomBar.astro'
 import ConsentBanner from '~/components/chrome/ConsentBanner.astro'
 import FamilyChrome from '~/components/chrome/FamilyChrome.astro'
-import Sidebar from '~/components/chrome/Sidebar.astro'
 import FeedDiscovery from '~/components/FeedDiscovery.astro'
 import Footer from '~/components/Footer.astro'
 import Header from '~/components/Header.astro'
@@ -51,9 +49,7 @@ const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
 const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
 const ga4Id = import.meta.env.PUBLIC_GA4_ID
 const ogImage = image ? new URL(image, 'https://food-blog.oriz.in').toString() : undefined
-const visibleBottomBarActions = hideSidebar
-  ? bottomBarActions.filter((action) => action.label !== 'Menu')
-  : bottomBarActions
+const visibleBottomBarActions = bottomBarActions.filter((action) => action.label !== 'Menu')
 ---
 
 <!doctype html>
@@ -70,7 +66,7 @@ const visibleBottomBarActions = hideSidebar
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content={type} />
-    <meta property="og:site_name" content="oriz / blog" />
+    <meta property="og:site_name" content="oriz / kitchen — The Test Kitchen Ledger" />
     {ogImage && <meta property="og:image" content={ogImage} />}
     {type === 'article' && pubDate && (
       <meta property="article:published_time" content={pubDate.toISOString()} />
@@ -142,10 +138,7 @@ const visibleBottomBarActions = hideSidebar
     <FamilyChrome slug="oriz-pages-blog-app" title="Blog" accent="var(--accent)" />
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
-    <div class="layout-body">
-      {!hideSidebar && <Sidebar><AppSidebarContent /></Sidebar>}
-      <main id="main"><slot /></main>
-    </div>
+    <main id="main"><slot /></main>
     <Footer />
     <BottomBar actions={visibleBottomBarActions} />
     <ConsentBanner />
@@ -161,9 +154,5 @@ const visibleBottomBarActions = hideSidebar
 </html>
 
 <style>
-  .layout-body { display: flex; gap: 0; align-items: flex-start; }
-  .layout-body > main { flex: 1 1 auto; min-width: 0; }
-  @media (max-width: 767px) {
-    .layout-body { display: block; }
-  }
+  main { display: block; min-width: 0; }
 </style>

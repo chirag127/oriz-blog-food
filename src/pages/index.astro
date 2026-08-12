@@ -1,43 +1,29 @@
 ---
+import PostCard from '~/components/blog/PostCard.astro'
 import SeriesSpine from '~/components/SeriesSpine.astro'
 /**
- * /  — oriz-blog-food homepage ("The Test Kitchen Ledger" front page).
+ * /  — oriz-blog-food homepage (recipe-card-grid archetype).
  *
- * Above the fold: a chalkboard-menu masthead — mono dateline (Season · date ·
- * "N recipes on the pass"), a big Fraunces nameplate stating the thesis, and
- * the signature RECIPE SPEC STRIP (serves · time · one-pot, turmeric tick).
- * Below: three hairline strata:
- *   1. IN PROGRESS — cooking series spines
- *   2. FRESH       — last 7 recipes, each with its desk kicker + spec strip
- *   3. BY DESK     — one typographic row (Kitchen / Baking / Prep / Pantry / Notes)
- *
- * No food photos, no cards, no glossy-magazine gradient. Verticals map to
- * recipe desks and each carries its own marker colour (--v-*).
+ * The board masthead + category chip rail live in <Header>. This page is the
+ * MENU CANVAS below the board: a lead "on the pass" dish spanning full width,
+ * then the rest of the recipes as tall cards in an asymmetric CSS-columns
+ * masonry (heights vary with dek length). A slim "cooking through" series rail
+ * sits between. Sidebar-free, card-first — no ledger rows, no top-nav grid.
  */
 import BaseLayout from '~/layouts/BaseLayout.astro'
 import {
-  getCategoriesWithCounts,
   getPostsInSeries,
   getPublishedPosts,
   getSeriesWithCounts,
-  postVertical,
-  readingTimeFor,
   slugifyTag,
-  verticalFor,
-  verticalLabel,
 } from '~/lib/blog'
 import { SITE_CONFIG } from '~/lib/config'
 
 const allPosts = await getPublishedPosts()
 const lead = allPosts[0]
-const recentPosts = allPosts.slice(1, 8)
+const rest = allPosts.slice(1)
 
 const seriesAll = await getSeriesWithCounts()
-// In-progress: series where at least one post exists. We model "published"
-// as the count of currently-published parts. Total is exposed as a heuristic
-// (count + a small tail of "drafting" dots) — for v1 of the v2 design, we
-// just use count for total and count for published, and animate the last
-// dot as `current` so the spine has the signature glyph (`⦿`) visible.
 type InProgress = {
   name: string
   slug: string
@@ -45,7 +31,6 @@ type InProgress = {
   published: number
   current: number
   latest: Date
-  parts: Awaited<ReturnType<typeof getPostsInSeries>>
 }
 const inProgress: InProgress[] = []
 for (const { series, count } of seriesAll.slice(0, 4)) {
@@ -54,9 +39,6 @@ for (const { series, count } of seriesAll.slice(0, 4)) {
     (max, p) => (p.data.pubDate > max ? p.data.pubDate : max),
     parts[0].data.pubDate,
   )
-  // Total must never be less than what's already published (otherwise the
-  // label reads "part 29 of 12"). Use the larger of: published count, the
-  // largest explicit `part` field, or published+1 to hint one more coming.
   const explicitMax = parts.reduce((mx, p) => {
     const v = typeof p.data.part === 'number' ? p.data.part : Number(p.data.part)
     return Number.isFinite(v) ? Math.max(mx, v) : mx
@@ -67,53 +49,11 @@ for (const { series, count } of seriesAll.slice(0, 4)) {
     slug: slugifyTag(series),
     total,
     published: count,
-    current: count, // last filled dot is "current"
+    current: count,
     latest,
-    parts,
   })
 }
 inProgress.sort((a, b) => b.latest.valueOf() - a.latest.valueOf())
-
-const cats = await getCategoriesWithCounts()
-
-// Masthead dateline — "SEASON · <today, long>" — the chalkboard menu-board.
-const now = new Date()
-const dateline = now.toLocaleDateString('en-GB', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
-const MONTH_SEASON = [
-  'Winter',
-  'Winter',
-  'Spring',
-  'Spring',
-  'Spring',
-  'Summer',
-  'Monsoon',
-  'Monsoon',
-  'Monsoon',
-  'Autumn',
-  'Autumn',
-  'Winter',
-]
-const season = MONTH_SEASON[now.getMonth()]
-const leadVertical = lead ? postVertical(lead) : 'personal'
-const leadRt = lead ? (lead.data.readingTime ?? readingTimeFor(lead)) : ''
-
-// "Days since" helper for the in-progress rail.
-function ago(date: Date): string {
-  const days = Math.floor((Date.now() - date.valueOf()) / 86_400_000)
-  if (days < 1) return 'today'
-  if (days === 1) return '1d ago'
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  if (months === 1) return '1mo ago'
-  if (months < 12) return `${months}mo ago`
-  const years = Math.floor(days / 365)
-  return years === 1 ? '1y ago' : `${years}y ago`
-}
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -131,70 +71,17 @@ const jsonLd = {
   jsonLd={jsonLd}
   hideSidebar
 >
-  <div class="container-page">
-    {/* Masthead — chalkboard menu-board, above the fold. */}
-    <section class="masthead" aria-label="Front page">
-      <div class="dateline mono">
-        <span class="dateline-vol">{season}</span>
-        <span class="dateline-sep" aria-hidden="true">·</span>
-        <span class="dateline-date">{dateline}</span>
-        <span class="dateline-sep" aria-hidden="true">·</span>
-        <span class="dateline-count"><span class="count">{allPosts.length}</span> recipes on the pass</span>
-      </div>
-      <h2 class="nameplate">Cook the things you actually eat.</h2>
-      <p class="nameplate-sub">Recipes tested on a real weeknight — Indian and global home cooking, written so the quantities and the steps just work. No life story before the list.</p>
-      {/* Signature — the recipe spec strip: mono chips + turmeric measure tick. */}
-      <p class="spec-strip mono" aria-label="How the kitchen works">
-        <span class="spec-chip"><span class="spec-tick" aria-hidden="true"></span>weeknight-first</span>
-        <span class="spec-chip">metric + cups</span>
-        <span class="spec-chip">substitutions listed</span>
-        <span class="spec-chip">no photo wall</span>
-      </p>
-    </section>
-
-    {lead && (
-      <>
-        <hr class="rule-heavy" />
-        <section class="lead" data-vertical={leadVertical} aria-labelledby="lead-title">
-          <a class="lead-link" href={`/blog/${lead.id}`}>
-            <span class="lead-kicker mono">
-              <span class="lead-tick" aria-hidden="true"></span>
-              <span class="lead-desk">{verticalLabel(leadVertical)}</span>
-              <span class="lead-flag">Tonight's plate</span>
-            </span>
-            <h2 id="lead-title" class="lead-title">{lead.data.title}</h2>
-            <p class="lead-dek">{lead.data.description}</p>
-            <span class="lead-meta mono">
-              <time datetime={lead.data.pubDate.toISOString()}>{lead.data.pubDate.toISOString().slice(0, 10)}</time>
-              <span aria-hidden="true">·</span>
-              <span>{leadRt}</span>
-            </span>
-          </a>
-        </section>
-      </>
-    )}
-
-    <hr class="hairline" />
-
-    {/* Stratum 1 — IN PROGRESS. */}
+  <div class="container-page menu">
     {inProgress.length > 0 && (
-      <section class="stratum stratum-progress" aria-labelledby="s-progress">
-        <h2 id="s-progress" class="stratum-h mono">Cooking through</h2>
-        <ul class="progress-list">
+      <section class="passline" aria-labelledby="passline-h">
+        <h2 id="passline-h" class="passline-h mono">Cooking through</h2>
+        <ul class="passline-list">
           {inProgress.map((s) => (
-            <li class="progress-row">
-              <a class="progress-link" href={`/series/${s.slug}/`}>
-                <span class="progress-name">{s.name}</span>
-                <span class="progress-meta mono">part {s.published} of {s.total}</span>
-                <span class="progress-spine-mount">
-                  <SeriesSpine
-                    total={s.total}
-                    published={s.published}
-                    current={s.current}
-                    size="md"
-                  />
-                </span>
-                <span class="progress-ago mono">{ago(s.latest)}</span>
+            <li>
+              <a class="passline-link" href={`/series/${s.slug}/`}>
+                <span class="passline-name">{s.name}</span>
+                <SeriesSpine total={s.total} published={s.published} current={s.current} size="sm" />
+                <span class="passline-meta mono">{s.published}/{s.total}</span>
               </a>
             </li>
           ))}
@@ -202,402 +89,108 @@ const jsonLd = {
       </section>
     )}
 
-    <hr class="hairline" />
-
-    {/* Stratum 2 — RECENT. */}
-    <section class="stratum stratum-recent" aria-labelledby="s-recent">
-      <h2 id="s-recent" class="stratum-h mono">Fresh from the kitchen</h2>
-      <ul class="recent-list">
-        {recentPosts.map((p) => (
-          <li class="recent-row" data-vertical={postVertical(p)}>
-            <a class="recent-link" href={`/blog/${p.id}`}>
-              <time class="recent-date mono" datetime={p.data.pubDate.toISOString()}>
-                {p.data.pubDate.toISOString().slice(0, 10)}
-              </time>
-              <span class="recent-meat">
-                <span class="recent-kicker mono">
-                  <span class="recent-tick" aria-hidden="true"></span>{verticalLabel(postVertical(p))}
-                </span>
-                <span class="recent-title">{p.data.title}</span>
-                <span class="recent-dek">{p.data.description}</span>
-              </span>
-              <span class="recent-rt mono">{p.data.readingTime ?? readingTimeFor(p)}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-      <p class="all-link">
-        <a href="/archive/">every recipe in the index →</a>
+    <section class="board-of-fare" aria-label="Recipes">
+      <h2 class="fare-h mono">Today&apos;s board of fare</h2>
+      {allPosts.length === 0 ? (
+        <p class="fare-empty">First recipe drops shortly. Kitchen&apos;s warming up.</p>
+      ) : (
+        <>
+          {lead && (
+            <div class="fare-lead">
+              <PostCard post={lead} feature />
+            </div>
+          )}
+          {rest.length > 0 && (
+            <div class="fare-masonry">
+              {rest.map((p) => <PostCard post={p} />)}
+            </div>
+          )}
+        </>
+      )}
+      <p class="fare-all">
+        <a href="/archive/">Every recipe in the index →</a>
       </p>
     </section>
-
-    <hr class="hairline" />
-
-    {/* Stratum 3 — BY CATEGORY (single typographic row). */}
-    {cats.length > 0 && (
-      <section class="stratum stratum-cats" aria-labelledby="s-cats">
-        <h2 id="s-cats" class="stratum-h mono">By desk</h2>
-        <p class="cats-row">
-          {cats.map((c, i) => (
-            <>
-              {i > 0 && <span class="cats-dot" aria-hidden="true">·</span>}
-              <a href={`/categories/${slugifyTag(c.category)}/`} class="cats-link" data-vertical={verticalFor(c.category)}>
-                <span class="cats-name">{c.category}</span>
-                <span class="cats-count mono">({c.count})</span>
-              </a>
-            </>
-          ))}
-        </p>
-      </section>
-    )}
   </div>
 </BaseLayout>
 
 <style>
-  .container-page {
-    max-width: 920px;
+  .container-page.menu {
+    max-width: 1100px;
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 2rem);
+    padding-block: clamp(1.5rem, 4vw, 2.5rem) 0;
   }
 
-  /* ── Masthead (front page) ─────────────────────────────────────────── */
-
-  .masthead {
-    padding-block: clamp(1.75rem, 5vw, 3rem) 1.5rem;
-  }
-  .dateline {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    padding-bottom: 0.875rem;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 1.5rem;
-  }
-  .dateline-vol { color: var(--accent); font-weight: 500; }
-  .dateline-sep { color: var(--rule-strong, var(--rule)); }
-  .dateline .count { color: var(--ink); }
-  .nameplate {
-    font-family: var(--font-display);
-    font-size: clamp(2.25rem, 7vw, 4rem);
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    line-height: 1.0;
-    color: var(--ink);
-    margin: 0;
-    max-width: 16ch;
-  }
-  .nameplate-sub {
-    font-family: var(--font-display);
-    font-size: clamp(1.0625rem, 2vw, 1.3125rem);
-    line-height: 1.45;
-    color: var(--ink-mute);
-    margin: 1rem 0 0;
-    max-width: 52ch;
-  }
-
-  /* ── Signature — recipe spec strip (turmeric measure tick) ─────────── */
-  .spec-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 1.5rem 0 0;
-    padding: 0;
-  }
-  .spec-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-    padding: 0.375rem 0.625rem;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    background: color-mix(in oklab, var(--paper-2) 60%, transparent);
-  }
-  .spec-tick {
-    width: 9px;
-    height: 9px;
-    flex: 0 0 auto;
-    background: var(--accent);
-    /* a spice-tin dot with a measuring notch */
-    clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%);
-  }
-
-  .rule-heavy {
-    height: 3px;
-    background: var(--ink);
-    border: 0;
-    margin: 0;
-  }
-
-  /* ── Lead story ────────────────────────────────────────────────────── */
-
-  .lead {
-    --v: var(--v-personal);
-    padding-block: 1.75rem 0.5rem;
-  }
-  .lead[data-vertical='dev'] { --v: var(--v-dev); }
-  .lead[data-vertical='finance'] { --v: var(--v-finance); }
-  .lead[data-vertical='culture'] { --v: var(--v-culture); }
-  .lead[data-vertical='health'] { --v: var(--v-health); }
-  .lead-link { display: grid; gap: 0.625rem; color: var(--ink); text-decoration: none; }
-  .lead-kicker {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute);
-  }
-  .lead-tick { width: 8px; height: 8px; background: var(--v); flex: 0 0 auto; }
-  .lead-desk { color: var(--v); font-weight: 500; }
-  .lead-flag { border-left: 1px solid var(--rule); padding-left: 0.5rem; color: var(--accent); }
-  .lead-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.875rem, 4.5vw, 2.75rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.08;
-    margin: 0;
-    max-width: 20ch;
-  }
-  .lead-link:hover .lead-title { color: var(--accent); }
-  .lead-dek {
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    line-height: 1.5;
-    color: var(--ink-mute);
-    margin: 0;
-    max-width: 58ch;
-  }
-  .lead-meta { display: inline-flex; gap: 0.5rem; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-mute); }
-
-  /* ── Strata ────────────────────────────────────────────────────────── */
-
-  .stratum { padding-block: 1.75rem 1.75rem; }
-  .stratum-h {
+  /* ── Series pass line ─────────────────────────────────────────────── */
+  .passline { margin-bottom: 2rem; }
+  .passline-h,
+  .fare-h {
     font-family: var(--font-mono);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.18em;
     color: var(--ink-mute);
     font-weight: 500;
-    margin: 0 0 1.25rem;
+    margin: 0 0 1rem;
   }
-
-  /* ── In progress ──────────────────────────────────────────────────── */
-
-  .progress-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .passline-list {
     display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-  }
-  .progress-row { padding: 0; }
-  .progress-link {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
-    gap: 1rem;
-    align-items: baseline;
-    color: var(--ink);
-    text-decoration: none;
-    padding-block: 0.5rem;
-  }
-  .progress-link:hover { color: var(--accent); }
-  .progress-link:hover .progress-meta,
-  .progress-link:hover .progress-ago { color: var(--accent); }
-  .progress-name {
-    font-family: var(--font-display);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .progress-meta, .progress-ago {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--ink-mute);
-  }
-  .progress-spine-mount { display: inline-flex; }
-
-  @media (max-width: 640px) {
-    .progress-link {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas:
-        'name      ago'
-        'meta      meta'
-        'spine     spine';
-      row-gap: 0.25rem;
-    }
-    .progress-name { grid-area: name; }
-    .progress-meta { grid-area: meta; }
-    .progress-spine-mount { grid-area: spine; }
-    .progress-ago { grid-area: ago; text-align: right; }
-  }
-
-  /* ── Recent ───────────────────────────────────────────────────────── */
-
-  .recent-list {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
     list-style: none;
-    padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
+    padding: 0;
   }
-  .recent-row {
-    --v: var(--v-personal);
-    border-bottom: 1px solid color-mix(in oklab, var(--rule) 70%, transparent);
-  }
-  .recent-row[data-vertical='dev'] { --v: var(--v-dev); }
-  .recent-row[data-vertical='finance'] { --v: var(--v-finance); }
-  .recent-row[data-vertical='culture'] { --v: var(--v-culture); }
-  .recent-row[data-vertical='health'] { --v: var(--v-health); }
-  .recent-row:last-child { border-bottom: 0; }
-  .recent-link {
-    display: grid;
-    grid-template-columns: 100px minmax(0, 1fr) auto;
-    gap: 1.25rem;
-    align-items: baseline;
-    color: var(--ink);
-    text-decoration: none;
-    padding-block: 0.875rem;
-    padding-left: 0.75rem;
-    margin-left: -0.75rem;
-    border-left: 2px solid transparent;
-    transition: border-color var(--dur-fast, 120ms) ease;
-  }
-  .recent-link:hover { border-left-color: var(--v); }
-  .recent-link:hover .recent-title { color: var(--accent); }
-  .recent-link:hover .recent-date,
-  .recent-link:hover .recent-rt { color: var(--accent); }
-
-  .recent-kicker {
+  .passline-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--v);
-    font-weight: 500;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--rule);
+    border-radius: var(--radius-button, 7px);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color var(--dur-fast, 120ms) ease;
   }
-  .recent-tick { width: 6px; height: 6px; background: var(--v); flex: 0 0 auto; }
-
-  .recent-date {
-    color: var(--ink-mute);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    position: relative;
-    padding-left: 0.875rem;
-  }
-  /* dateline gutter: coral tick marks the wire-feed timestamp */
-  .recent-date::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.12em;
-    width: 3px;
-    height: 0.7em;
-    background: var(--cobalt);
-  }
-  .recent-meat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    min-width: 0;
-  }
-  .recent-title {
+  .passline-link:hover { border-color: var(--accent); }
+  .passline-link:hover .passline-name { color: var(--accent); }
+  .passline-name {
     font-family: var(--font-display);
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: var(--ink);
-    line-height: 1.3;
   }
-  .recent-dek {
-    font-family: var(--font-body);
-    font-size: 14.5px;
-    color: var(--ink-mute);
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-  }
-  .recent-rt {
-    color: var(--ink-mute);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
+  .passline-meta { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.06em; }
 
-  @media (max-width: 640px) {
-    .recent-link {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas:
-        'date   rt'
-        'meat   meat';
-      row-gap: 0.25rem;
-    }
-    .recent-date { grid-area: date; }
-    .recent-rt { grid-area: rt; text-align: right; }
-    .recent-meat { grid-area: meat; }
-  }
+  /* ── Board of fare — lead dish + masonry ──────────────────────────── */
+  .board-of-fare { padding-bottom: 3rem; }
+  .fare-lead { margin-bottom: 1rem; }
 
-  .all-link {
-    margin: 1.25rem 0 0;
+  /* Asymmetric masonry via CSS columns — heights vary with content. */
+  .fare-masonry {
+    column-gap: 1rem;
+    columns: 1;
+  }
+  .fare-masonry > :global(.dish) { margin-bottom: 1rem; }
+  @media (min-width: 600px) { .fare-masonry { columns: 2; } }
+  @media (min-width: 1000px) { .fare-masonry { columns: 3; } }
+
+  .fare-empty {
+    color: var(--ink-mute);
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+  }
+  .fare-all {
+    margin: 1.75rem 0 0;
     font-family: var(--font-sans);
     font-size: 13.6px;
   }
-  .all-link a {
+  .fare-all a {
     color: var(--ink-mute);
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-color: var(--rule);
   }
-  .all-link a:hover { color: var(--accent); text-decoration-color: var(--accent); }
-
-  /* ── By category (one row) ────────────────────────────────────────── */
-
-  .cats-row {
-    margin: 0;
-    line-height: 2;
-    color: var(--ink);
-  }
-  .cats-link {
-    --v: var(--v-personal);
-    color: var(--ink);
-    text-decoration: none;
-    margin-inline: 0.125rem;
-  }
-  .cats-link[data-vertical='dev'] { --v: var(--v-dev); }
-  .cats-link[data-vertical='finance'] { --v: var(--v-finance); }
-  .cats-link[data-vertical='culture'] { --v: var(--v-culture); }
-  .cats-link[data-vertical='health'] { --v: var(--v-health); }
-  .cats-link:hover .cats-name { color: var(--v); }
-  .cats-name {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-  .cats-count {
-    color: var(--ink-mute);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    margin-left: 0.25rem;
-  }
-  .cats-dot { color: var(--rule); margin-inline: 0.625rem; }
+  .fare-all a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 </style>
