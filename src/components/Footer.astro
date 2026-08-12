@@ -31,8 +31,9 @@ const desks = (await getCategoriesWithCounts()).slice(0, 8).map(({ category, cou
       {desks.map((d) => (
         <a class="rail-chip" href={`/categories/${d.slug}/`}>{d.name}<span class="rail-n">{d.count}</span></a>
       ))}
-      <a class="rail-chip rail-feed" href="/rss.xml">RSS</a>
-      <a class="rail-chip rail-feed" href="/series/">Series</a>
+      <a class="rail-chip rail-feed" href="/rss.xml">RSS feed</a>
+      <a class="rail-chip rail-feed" href="/series/">Recipe series</a>
+      <a class="rail-chip rail-feed" href="/archive/">Full index</a>
     </nav>
   </div>
 

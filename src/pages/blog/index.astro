@@ -22,7 +22,7 @@ const jsonLd = {
   '@type': 'Blog',
   name: `Blog — ${SITE_CONFIG.title}`,
   url: new URL('/blog/', SITE_CONFIG.url).toString(),
-  description: 'Writing on software, AI agents, finance tooling, and the tools I build at oriz.in.',
+  description: 'Real weeknight recipes — Indian and global home cooking, tested quantities. By Chirag Singhal.',
   author: {
     '@type': 'Person',
     name: SITE_CONFIG.author.name,
@@ -32,22 +32,22 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="Blog"
-  description="Writing on software, AI agents, finance tooling, and the tools I build."
+  title="All Recipes"
+  description="Real weeknight recipes — Indian and global home cooking, tested quantities. By Chirag Singhal."
   jsonLd={jsonLd}
 >
   <div class="container-page section">
     <header class="blog-head">
-      <p class="blog-kicker mono">The desk</p>
-      <h1>Blog</h1>
+      <p class="blog-kicker mono">The index</p>
+      <h1>All Recipes</h1>
       <p class="blog-lede">
-        Writing on software, AI agents, finance tooling, and the tools I build.
+        Every recipe and food essay, newest first. Real weeknight cooking — Indian, global, tested.
       </p>
     </header>
 
     {categories.length > 0 && (
-      <nav class="desk-strip mono" aria-label="Filter posts by category">
-        <a class="desk is-active" href="/blog/">All</a>
+      <nav class="desk-strip mono" aria-label="Filter recipes by category">
+        <a class="desk is-active" href="/blog/">All dishes</a>
         {categories.map((c) => (
           <a class="desk" href={`/categories/${slugifyTag(c)}/`}>{c}</a>
         ))}

@@ -25,12 +25,12 @@ const desks = order
   .filter((d) => d.cats.length > 0)
 ---
 
-<BaseLayout title="Categories — Blog" description="Browse blog posts by category desk.">
+<BaseLayout title="Recipe Desks — Kitchen" description="Browse recipes by cooking category.">
   <div class="page">
     <header class="page-head">
-      <p class="eyebrow">Index</p>
-      <h1>Categories</h1>
-      <p class="meta">{sortedCategories.length} categories across {allPosts.length} posts, filed under {desks.length} desks.</p>
+      <p class="eyebrow">Recipe desks</p>
+      <h1>Cooking Desks</h1>
+      <p class="meta">{sortedCategories.length} desks across {allPosts.length} recipe{allPosts.length !== 1 ? 's' : ''}, grouped by kitchen station.</p>
     </header>
 
     <div class="desks">

@@ -19,11 +19,11 @@ const jsonLd = {
 }
 ---
 
-<BaseLayout title="Archive — Blog" description="Every blog post, grouped by year." jsonLd={jsonLd}>
+<BaseLayout title="Recipe Index — Kitchen" description="Every recipe and food essay, grouped by year." jsonLd={jsonLd}>
   <div class="page">
     <header class="page-head">
-      <h1>Archive</h1>
-      <p class="meta">{total} posts across {groups.length} year{groups.length !== 1 ? 's' : ''}.</p>
+      <h1>Recipe Index</h1>
+      <p class="meta">{total} recipe{total !== 1 ? 's' : ''} across {groups.length} year{groups.length !== 1 ? 's' : ''}.</p>
     </header>
 
     <div class="archive">

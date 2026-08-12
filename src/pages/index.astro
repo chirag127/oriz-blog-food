@@ -1,4 +1,5 @@
 ---
+import KitchenTicker from '~/components/KitchenTicker.astro'
 import PostCard from '~/components/blog/PostCard.astro'
 import SeriesSpine from '~/components/SeriesSpine.astro'
 /**
@@ -72,6 +73,13 @@ const jsonLd = {
   hideSidebar
 >
   <div class="container-page menu">
+    {/* Kitchen ticker — scrolling recipe-signal strip, food blog signature */}
+    {allPosts.length > 0 && (
+      <div class="ticker-rail">
+        <KitchenTicker posts={allPosts} />
+      </div>
+    )}
+
     {inProgress.length > 0 && (
       <section class="passline" aria-labelledby="passline-h">
         <h2 id="passline-h" class="passline-h mono">Cooking through</h2>
@@ -120,6 +128,12 @@ const jsonLd = {
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 2rem);
     padding-block: clamp(1.5rem, 4vw, 2.5rem) 0;
+  }
+
+  /* Kitchen ticker rail — bleed edge-to-edge inside the container. */
+  .ticker-rail {
+    margin-inline: calc(clamp(1.25rem, 4vw, 2rem) * -1);
+    margin-bottom: 1.75rem;
   }
 
   /* ── Series pass line ─────────────────────────────────────────────── */
