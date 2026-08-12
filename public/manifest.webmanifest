@@ -1,0 +1,27 @@
+{
+  "name": "The Test Kitchen Ledger",
+  "short_name": "Test Kitchen",
+  "description": "Recipes tested on a real weeknight — Indian and global home cooking, written so the quantities and steps just work. By Chirag Singhal.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f2620",
+  "theme_color": "#0f2620",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "reference"],
+  "lang": "en"
+}

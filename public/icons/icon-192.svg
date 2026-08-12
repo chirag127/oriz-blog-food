@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <title>The Test Kitchen Ledger</title>
+  <rect width="192" height="192" rx="40" fill="#0f2620"/>
+  <!-- turmeric spice-tin dot with a measuring notch (the site's signature tick) -->
+  <path d="M96 40 L150 82 L129 150 L63 150 L42 82 Z" fill="#e8a020"/>
+</svg>

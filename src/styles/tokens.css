@@ -1,0 +1,260 @@
+/*
+ * tokens.css — oriz-blog-food identity ("The Test Kitchen Ledger", 2026-08-12).
+ *
+ * Deliberately DISTINCT from oriz-blog (cool ink + amber + Source Serif) and
+ * every sister oriz.in app. Per the design-diversity rule each site owns its
+ * look; this one is a working cook's counter-log, NOT the cream+serif+
+ * terracotta food-blog cliche (that IS AI-default #1).
+ *
+ *   Deep enamel spice-tin GREEN surface · turmeric/saffron signal accent ·
+ *   chili-red spice marker · Fraunces display (wonky old-style) · Inter body ·
+ *   JetBrains Mono for quantities/times (kitchen-label metadata).
+ *
+ * Every --color-* alias is preserved so chrome/legal/Footer components (which
+ * consume the shell token names) compile unchanged. Theme modes:
+ *   :root                              -> dark enamel (default)
+ *   [data-theme="light"] / no-dark     -> bright kitchen paper
+ *   [data-theme="dark"]                -> dark enamel, always
+ *   [data-theme="sepia"]               -> warm butcher-paper variant
+ *   [data-theme="hc"]                  -> pure black/white high contrast
+ */
+:root {
+  color-scheme: dark;
+
+  /* -- dark enamel palette (default) -------------------------------------
+     Deep spice-tin green surface, warm off-white ink, turmeric accent, chili
+     secondary. Cool green base is the anti-cliche move: food blogs default to
+     cream; a kitchen enamel green reads "test kitchen", not "magazine". */
+  --brand: #e8a020;         /* turmeric / saffron signal — links, active, primary */
+  --brand-soft: #2a2410;    /* deep turmeric tint — hover, chips (dark) */
+  --success: #6fbf73;       /* fresh-herb green */
+  --danger-color: #d64524;  /* chili red */
+
+  --paper: #0f2620;         /* enamel spice-tin green (page bg) */
+  --paper-2: #153029;       /* elevated panel / surface */
+  --surface: var(--paper-2);
+  --ink: #f3ede0;           /* warm off-white text (butter, not pure white) */
+  --ink-mute: #9db3a8;      /* sage-grey secondary */
+  --rule: #274036;          /* soft green hairlines */
+  --rule-strong: #33564a;   /* heavier masthead rule */
+
+  /* canonical accent — turmeric. Everything routes through --accent.
+     --cobalt kept ONLY as a back-compat alias -> --accent. */
+  --accent: var(--brand);
+  --accent-soft: var(--brand-soft);
+  --cobalt: var(--accent);
+  --brand-tint: var(--brand-soft);
+  --sage: var(--success);
+  --vermilion: var(--danger-color);
+  --highlighter: var(--brand);
+
+  /* content-vertical markers — the recipe "desks". Thin ticks / kicker dots
+     only, never the page accent. Kitchen / Baking / Prep / Pantry / Notes. */
+  --v-dev: #e8a020;      /* Kitchen (mains) — turmeric */
+  --v-finance: #d64524;  /* Baking / heat — chili */
+  --v-culture: #7bc4b0;  /* Prep / technique — mint */
+  --v-health: #6fbf73;   /* Pantry / staples — herb */
+  --v-personal: #c8a15a; /* Notes — toasted wheat */
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--brand);
+  --color-accent-fg: #1a1206;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--paper-2);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--brand);
+  --color-brand-indigo-soft: var(--brand-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
+  --color-neutral-0: #0f2620;
+  --color-neutral-50: #153029;
+  --color-neutral-100: #1a3a31;
+  --color-neutral-200: #274036;
+  --color-neutral-300: #33564a;
+  --color-neutral-500: #9db3a8;
+  --color-neutral-700: #c9d6ce;
+  --color-neutral-900: #f3ede0;
+  --color-neutral-1000: #ffffff;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+
+  /* -- type ------------------------------------------------------------
+     Font families declared ONCE in global.css @theme. Not duplicated here. */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+
+  /* spacing — 8 steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* motion — 3 durations + 3 easings */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* breakpoints */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1440px;
+
+  /* radii + containers — slightly softer than oriz-blog's hard 0/8 to read
+     "enamelware", but still restrained. */
+  --radius-card: 10px;
+  --radius-button: 7px;
+  --container-page: 1100px;
+}
+
+/* -- LIGHT — bright kitchen paper, system-light unless user forced dark --- */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --brand: #b9720a;         /* deeper turmeric for AA on light paper */
+    --brand-soft: #f6e7c8;
+    --paper: #f7f2e7;         /* warm kitchen paper (cooler wheat, not the cream cliche) */
+    --paper-2: #efe6d3;
+    --ink: #1f2b24;           /* deep enamel-green ink */
+    --ink-mute: #5f6f66;
+    --rule: #ddd0b8;
+    --rule-strong: #c9b998;
+    --success: #2f8f4e;
+    --danger-color: #c33a1c;
+    --v-dev: #b9720a;
+    --v-finance: #c33a1c;
+    --v-culture: #2b8570;
+    --v-health: #2f8f4e;
+    --v-personal: #8a6a2a;
+    --color-accent-fg: #f7f2e7;
+    --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+    --color-neutral-50: #efe6d3;
+    --color-neutral-100: #e6dbc3;
+    --color-neutral-200: #ddd0b8;
+    --color-neutral-500: #5f6f66;
+    --color-neutral-700: #3a463d;
+    --color-neutral-900: #1f2b24;
+  }
+}
+
+/* -- LIGHT — explicit user override ------------------------------------- */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --brand: #b9720a;
+  --brand-soft: #f6e7c8;
+  --paper: #f7f2e7;
+  --paper-2: #efe6d3;
+  --ink: #1f2b24;
+  --ink-mute: #5f6f66;
+  --rule: #ddd0b8;
+  --rule-strong: #c9b998;
+  --success: #2f8f4e;
+  --danger-color: #c33a1c;
+  --v-dev: #b9720a;
+  --v-finance: #c33a1c;
+  --v-culture: #2b8570;
+  --v-health: #2f8f4e;
+  --v-personal: #8a6a2a;
+  --color-accent-fg: #f7f2e7;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-50: #efe6d3;
+  --color-neutral-100: #e6dbc3;
+  --color-neutral-200: #ddd0b8;
+  --color-neutral-500: #5f6f66;
+  --color-neutral-700: #3a463d;
+  --color-neutral-900: #1f2b24;
+}
+
+/* -- DARK — explicit user override, wins over system -------------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --brand: #e8a020;
+  --brand-soft: #2a2410;
+  --paper: #0f2620;
+  --paper-2: #153029;
+  --ink: #f3ede0;
+  --ink-mute: #9db3a8;
+  --rule: #274036;
+  --rule-strong: #33564a;
+  --success: #6fbf73;
+  --danger-color: #d64524;
+  --v-dev: #e8a020;
+  --v-finance: #d64524;
+  --v-culture: #7bc4b0;
+  --v-health: #6fbf73;
+  --v-personal: #c8a15a;
+  --color-accent-fg: #1a1206;
+  --color-neutral-50: #153029;
+  --color-neutral-100: #1a3a31;
+  --color-neutral-200: #274036;
+  --color-neutral-500: #9db3a8;
+  --color-neutral-700: #c9d6ce;
+  --color-neutral-900: #f3ede0;
+}
+
+/* -- SEPIA — warm butcher paper, chili accent -------------------------- */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --brand: #a8531b;
+  --brand-soft: #f2ddc6;
+  --paper: #f2e3cc;
+  --paper-2: #ead7ba;
+  --ink: #372a1c;
+  --ink-mute: #7d6a4f;
+  --rule: #d8c2a0;
+  --color-accent-fg: #f2e3cc;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-50: #f2e3cc;
+  --color-neutral-100: #ead7ba;
+  --color-neutral-200: #d8c2a0;
+  --color-neutral-500: #7d6a4f;
+  --color-neutral-700: #574530;
+  --color-neutral-900: #372a1c;
+}
+
+/* -- HIGH-CONTRAST — pure black/white, hard borders -------------------- */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --brand: #8a4a00;
+  --brand-soft: #ffe8c2;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-mute: #262626;
+  --rule: #000000;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #262626;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #000000;
+  --color-neutral-500: #262626;
+  --color-neutral-700: #000000;
+  --color-neutral-900: #000000;
+}
